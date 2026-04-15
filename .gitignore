@@ -1,0 +1,34 @@
+# Папки с зависимостями
+.cache/
+.config/
+.julia/
+.landscape/
+.vscode-server/
+
+# Системные файлы
+.bash_history
+.bash_logout
+.bashrc
+.lesshst
+.motd_shown
+.profile
+.sudo_as_admin_successful
+.viminfo
+.vimrc
+.wget-hsts
+
+# Мои ненужные папки
+CSframes/
+Diplom/
+OldFiles/
+
+# Мои ненужные файлы
+*.txt
+*.png
+1DEmultionElastic.jl
+TestBound.jl
+TestOperators.jl
+AllTests.jl
+
+
+
