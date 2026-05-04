@@ -3,7 +3,7 @@ heaviside(u) = 0.5 * (sign(u) + 1.0)
 function ConservMassAndMomentumStep(rho1, rho2, u, E, Phi, dt)
 	u_x = [u[j][1] for j in 1:N + 2 * fict]
 
-	#=
+	
 	flux1 = zeros(N + 2 * fict)
 	flux2 = zeros(N + 2 * fict)
 
@@ -15,8 +15,8 @@ function ConservMassAndMomentumStep(rho1, rho2, u, E, Phi, dt)
 
 	flux1 = BoundCondFlux(flux1)
     flux2 = BoundCondFlux(flux2)
-	=#
-
+	
+	#=
 	flux1 = zeros(N + 2*fict)
 	flux2 = zeros(N + 2*fict)
 
@@ -32,7 +32,7 @@ function ConservMassAndMomentumStep(rho1, rho2, u, E, Phi, dt)
 
 	flux1 = BoundCondFlux(flux1)
 	flux2 = BoundCondFlux(flux2)
-
+	=#
 	d_rho1_u = d(flux1)
 	d_rho2_u = d(flux2)
 
@@ -149,32 +149,6 @@ function CheckStability(rho1, rho2, u, step, t, E, mu_el, lam_el, Phi)
         return false
     end
 
-	if minimum(rho1) < -1.0 || minimum(rho2) < -1.0
-		println("Negative densities, step = $step, t = $t, min(rho1) = $(minimum(rho1)), min(rho2) = $(minimum(rho2))")
-		return false
-	end
-
-	if step % 10000 == 0
-		mu1h_dbg = Mu1Hat(E, mu_el, lam_el, rho1, rho2)
-		mu2h_dbg = Mu2Hat(E, mu_el, lam_el, rho1, rho2)
-		diff_mu = mu1h_dbg .- mu2h_dbg
-		dStar_diff = dStar(diff_mu)
-		#println("step=$step max|dStar(mu1h-mu2h)|=$(maximum(abs.(dStar_diff))) " *
-				#"у стенок: left=$(dStar_diff[fict+1]), right=$(dStar_diff[N+fict])")
-	end
-
-	if step % 10000 == 0
-		u_x = [u[i][1] for i in fict+1:N+fict]
-		rho_s = sStar(rho1 .+ rho2)
-		momentum = sum(rho_s[fict+1:N+fict] .* u_x) * h
-		#println("step=$step momentum=$momentum")
-		rho = rho1 .+ rho2
-		u_x = [u[i][1] for i in 1:N + 2 * fict]
-    	s_u_2 = s(u_x .* u_x)
-		E_kin_val = 0.5 * sum(rho[fict+1:N-1+fict] .* s_u_2[fict+1:N-1+fict]) * h
-		E_pot_val = sum((rho1 .+ rho2)[fict+1:N+fict-1] .* Phi[fict+1:N+fict-1]) * h
-		#println("E_kin=$E_kin_val  E_pot=$E_pot_val  sum=$(E_kin_val - E_pot_val)")
-	end
 
     return true
 
