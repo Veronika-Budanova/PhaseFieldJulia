@@ -41,105 +41,104 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
                     frame_count, time_hist, energy_hist,
                     frames_data, mu1_full, mu2_full)
 
-    fig = plt.figure(figsize=(18,8))
+                    
+    fig = plt.figure(figsize=(16,12))
+    plt.rcParams["font.family"] = "serif"
+    plt.rcParams["axes.formatter.use_mathtext"] = true
+    ticker = pyimport("matplotlib.ticker")
 
     ############################
     # densities
     ############################
+    ax1 = fig.add_subplot(3,2,1)
 
-    ax1 = fig.add_subplot(2,3,1)
-
-    ax1.plot(xc[fict+1:N+fict-1],rho1[fict+1:N+fict-1],label="rho1")
-    ax1.plot(xc[fict+1:N+fict-1],rho2[fict+1:N+fict-1],label="rho2")
-    ax1.plot(xc[fict+1:N+fict-1],rho1[fict+1:N+fict-1]+rho2[fict+1:N+fict-1],label="rho_total")
-
-    ax1.set_xlabel("x")
-    ax1.set_ylabel("Density")
-    ax1.set_title(@sprintf("time = %.4f",t))
+    ax1.plot(xc[fict+1:N+fict-1],rho1[fict+1:N+fict-1],color="midnightblue",label=raw"$\rho_1$")
+    ax1.plot(xc[fict+1:N+fict-1],rho2[fict+1:N+fict-1],color="steelblue",label=raw"$\rho_2$")
+    ax1.plot(xc[fict+1:N+fict-1],rho1[fict+1:N+fict-1]+rho2[fict+1:N+fict-1],ls="--",color="purple",label=raw"$\rho_1+\rho_2$")
+    ax1.set_xlabel(raw"x, mm")
+    ax1.set_ylabel("\$\\mathrm{Density,} \\mu\\mathrm{g}/\\mathrm{mm}^3 (\\mathrm{kg}/\\mathrm{m}^3)\$")
+    ax1.set_ylim(-5,1800)
+    ax1.set_title(@sprintf("Density(x) at time = %.2f",t))
     ax1.grid(true)
     ax1.legend()
 
     ############################
     # energy
     ############################
+    ax2 = fig.add_subplot(3,2,2)
 
-    ax2 = fig.add_subplot(2,3,2)
-
-    ax2.plot(time_hist,energy_hist,"k-",linewidth=2,label="Total energy")
-
-    ax2.set_xlabel("time")
-    ax2.set_ylabel("Total energy")
-    ax2.set_title("Total energy (time)")
+    ax2.plot(time_hist,energy_hist,color="maroon")
+    ax2.set_yscale("log")
+    ax2.set_xlabel(raw"time, ms")
+    ax2.set_ylabel(raw"Logarithm of total energy")
+    ax2.set_xlim(0,20)
+    ax2.set_ylim(100,130)
+    ax2.set_title(raw"Logarithm of total energy(time)")
     ax2.grid(true)
-
-    ############################
-    # chemical potentials
-    ############################
-
-    ax3 = fig.add_subplot(2,3,3)
-
-    mu1_min_hist = [frames_data[i][8] for i in 1:length(frames_data)]
-    mu1_max_hist = [frames_data[i][9] for i in 1:length(frames_data)]
-
-    mu2_min_hist = [frames_data[i][10] for i in 1:length(frames_data)]
-    mu2_max_hist = [frames_data[i][11] for i in 1:length(frames_data)]
-
-    times_hist = [frames_data[i][5] for i in 1:length(frames_data)]
-
-    push!(mu1_min_hist,minimum(mu1_full[fict+1:N+fict-1]))
-    push!(mu1_max_hist,maximum(mu1_full[fict+1:N+fict-1]))
-
-    push!(mu2_min_hist,minimum(mu2_full[fict+1:N+fict-1]))
-    push!(mu2_max_hist,maximum(mu2_full[fict+1:N+fict-1]))
-
-    push!(times_hist,t)
-
-    ax3.plot(times_hist,mu1_min_hist,"b--",linewidth=1.5,label="Mu1 min")
-    ax3.plot(times_hist,mu1_max_hist,"b-",linewidth=1.5,label="Mu1 max")
-
-    ax3.plot(times_hist,mu2_min_hist,"r--",linewidth=1.5,label="Mu2 min")
-    ax3.plot(times_hist,mu2_max_hist,"r-",linewidth=1.5,label="Mu2 max")
-
-    ax3.set_xlabel("time")
-    ax3.set_ylabel("Chemical potential extrema")
-    ax3.set_title("Chemical potential extrema (time)")
-    ax3.grid(true)
-    ax3.legend()
 
     ############################
     # velocity
     ############################
-
-    ax4 = fig.add_subplot(2,3,4)
+    ax3 = fig.add_subplot(3,2,3)
 
     u_x = [u[i][1] for i in fict+1:N+fict]
-    ax4.plot(x[fict+1:N+fict], u_x, label="u")
+    ax3.plot(x[fict+1:N+fict], u_x, color="slateblue")
+    ax3.set_xlabel(raw"x, mm")
+    ax3.set_ylabel(raw"Velocity, mm/ms (m/s)")
+    ax3.set_ylim(-0.3,0.1)
+    ax3.set_title(@sprintf("Velocity(x) at time = %.2f",t))
+    ax3.grid(true)
+  
 
-    ax4.set_xlabel("x")
-    ax4.set_ylabel("Velocity")
-    ax4.set_title(@sprintf("time = %.4f",t))
+
+    ############################
+    # chemical potentials
+    ############################
+    ax4 = fig.add_subplot(3,2,4)
+
+    mu1_min_hist = [frames_data[i][8] for i in 1:length(frames_data)]
+    mu1_max_hist = [frames_data[i][9] for i in 1:length(frames_data)]
+    mu2_min_hist = [frames_data[i][10] for i in 1:length(frames_data)]
+    mu2_max_hist = [frames_data[i][11] for i in 1:length(frames_data)]
+    times_hist = [frames_data[i][5] for i in 1:length(frames_data)]
+    push!(mu1_min_hist,minimum(mu1_full[fict+1:N+fict-1]))
+    push!(mu1_max_hist,maximum(mu1_full[fict+1:N+fict-1]))
+    push!(mu2_min_hist,minimum(mu2_full[fict+1:N+fict-1]))
+    push!(mu2_max_hist,maximum(mu2_full[fict+1:N+fict-1]))
+    push!(times_hist,t)
+    ax4.plot(times_hist,mu1_min_hist,color="orchid",ls="-.",label=raw"Minimum of $\hat{\mu}_1$")
+    ax4.plot(times_hist,mu2_min_hist,color="cornflowerblue",ls="-.",label=raw"Minimum of $\hat{\mu}_2$")
+    ax4.plot(times_hist,mu1_max_hist,color="orchid",ls="--",label=raw"Maximum of $\hat{\mu}_1$")
+    ax4.plot(times_hist,mu2_max_hist,color="cornflowerblue",ls="--",label=raw"Maximum of $\hat{\mu}_2$")
+    ax4.set_xlabel(raw"time, ms")
+    ax4.set_ylabel("\$\\mathrm{Extremes of chemical potentials,} \\mathrm{mm}^2/\\mathrm{ms}^2 (J/kg)\$")
+    ax4.set_xlim(0,20)
+    ax4.set_ylim(-0.2,0.2)
+    ax4.set_title(raw"Extremes of chemical potentials(time)")
     ax4.grid(true)
     ax4.legend()
+
+
 
     ############################
     # pressure
     ############################
+    ax5 = fig.add_subplot(3,2,5)
 
-    ax5 = fig.add_subplot(2,3,5)
-
-    ax5.plot(xc[fict+1:N+fict-1],p[fict+1:N+fict-1],label="p")
-
-    ax5.set_xlabel("x")
-    ax5.set_ylabel("Pressure")
-    ax5.set_title(@sprintf("time = %.4f",t))
+    ax5.plot(xc[fict+1:N+fict-1],p[fict+1:N+fict-1],color="indigo")
+    ax5.set_xlabel(raw"x, mm")
+    ax5.set_ylabel("\$\\mathrm{Pressure,} \\mu\\mathrm{g}/(\\mathrm{mm} \\cdot \\mathrm{ms}^2) (Pa)\$")
+    ax5.set_ylim(-80,110)
+    ax5.set_title(@sprintf("Pressure(x) at time = %.2f",t))
     ax5.grid(true)
-    ax5.legend()
+  
 
     ############################
     # approximate compressibility
     ############################
 
-    ax6 = fig.add_subplot(2,3,6)
+    #=
+    ax6 = fig.add_subplot(3,2,6)
 
     sStar_rho = sStar(rho1 .+ rho2)
     c_approx = [sqrt(max(0.0, Apsi * sStar_rho[i])) for i in fict+1:N+fict]
@@ -148,12 +147,30 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
 
     ax6.set_xlabel("x")
     ax6.set_ylabel("Compressibility")
-    ax6.set_title(@sprintf("time = %.4f",t))
+    ax6.set_ylim(0,0.4)
+    ax6.set_title(@sprintf("time = %.2f",t))
     ax6.grid(true)
     ax6.legend()
+    =#
+
+
+    for ax in fig.get_axes()
+        ax.xaxis.set_major_locator(ticker.AutoLocator())
+        ax.xaxis.set_minor_locator(ticker.AutoMinorLocator(5))  
+        ax.yaxis.set_major_locator(ticker.AutoLocator())
+        ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(5))
+        
+        ax.grid(true, which="major", linestyle="-", linewidth=0.8, alpha=0.7)
+        ax.grid(true, which="minor", linestyle="--", linewidth=0.5, alpha=0.5)
+
+        
+    end
+
+    ax2.grid(true, which="both", linestyle="-", linewidth=0.5, alpha=0.5)
+
 
     plt.tight_layout()
-    plt.savefig(@sprintf("%s/rho_%06d.png", direct, frame_count))
+    plt.savefig(@sprintf("%s/rho_%05d.png", direct, frame_count))
     plt.close()
 end
 
