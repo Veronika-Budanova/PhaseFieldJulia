@@ -19,7 +19,7 @@ lam12 = 0
 lam21 = lam12
 lam22 = lam11
 
-Apsi = 1e-4
+Apsi = 1e-3
 Bpsi = Apsi
 
 lamelB = 2e2
@@ -34,7 +34,7 @@ zeta = 0
 
 g = 0.05
 
-u_init = -0.05
+u_init = -0.2
 
 bound = "wall"
 
@@ -60,4 +60,4 @@ x0_piston = 0.6 * L
 #p0 = 100.0
 
 # DIRECTORY
-direct = "CSframes/28"
+direct = "CSframes/33"
