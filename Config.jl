@@ -34,14 +34,14 @@ zeta = 0
 
 g = 0.05
 
-u_init = -0.2
+u_init = -0.1
 
 bound = "wall"
 
 # TIME PARAMETERS
 #CFL = 0.125
 
-t_max = 20
+t_max = 0.3
 delta_t = 1e-6
 step_max = t_max/delta_t
 
@@ -60,4 +60,4 @@ x0_piston = 0.6 * L
 #p0 = 100.0
 
 # DIRECTORY
-direct = "CSframes/33"
+direct = "CSframes/33_5"
