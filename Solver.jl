@@ -1,133 +1,176 @@
 heaviside(u) = 0.5 * (sign(u) + 1.0)
 
-function ConservMassAndMomentumStep(rho1, rho2, u, E, Phi, dt)
-	u_x = [u[j][1] for j in 1:N + 2 * fict]
+function ConservMassAndMomentumStep!(rho1_new, rho2_new, u_new, buf,
+                                     rho1, rho2, u, E, Phi, dt,
+                                     mu_el, lam_el, mu1h, mu2h, M_arr,
+                                     K_current, Pi_el_current, Pi_ns_current)
 
-	
-	flux1 = zeros(N + 2 * fict)
-	flux2 = zeros(N + 2 * fict)
+    Ncentr = N + 2 * fict - 1
+    Nface  = N + 2 * fict
 
-	sStar_rho1 = sStar(rho1)
-	sStar_rho2 = sStar(rho2)
-
-	flux1 = sStar_rho1 .* u_x
-	flux2 = sStar_rho2 .* u_x
-
-	flux1 = BoundCondFlux(flux1)
-    flux2 = BoundCondFlux(flux2)
-	
-	#=
-	flux1 = zeros(N + 2*fict)
-	flux2 = zeros(N + 2*fict)
-
-	for i in fict+1:N+fict
-		if u_x[i] >= 0
-			flux1[i] = rho1[i-1] * u_x[i]   
-			flux2[i] = rho2[i-1] * u_x[i]
-		else
-			flux1[i] = rho1[i] * u_x[i]      
-			flux2[i] = rho2[i] * u_x[i]
-		end
-	end
-
-	flux1 = BoundCondFlux(flux1)
-	flux2 = BoundCondFlux(flux2)
-	=#
-	d_rho1_u = d(flux1)
-	d_rho2_u = d(flux2)
-
-	mu_el = MuEl(muelB, rho1, rho2)
-	lam_el = LamEl(lamelB, rho1, rho2)
-
-    mu1h = Mu1Hat(E, mu_el, lam_el, rho1, rho2)
-    mu2h = Mu2Hat(E, mu_el, lam_el, rho1, rho2)
-
-	mu1h = BoundCondScalar(mu1h)
-	mu2h = BoundCondScalar(mu2h)
-
-	M_arr = M(M0, rho1, rho2)
-	sStar_M = sStar(M_arr)
-	theta_mu1h_mu2h = theta^(-1) .* (mu1h .- mu2h)
-	dStar_theta_mu1h_mu2h = dStar(theta_mu1h_mu2h)
-	sStar_M_dStar_theta_mu1h_mu2h = sStar_M .* dStar_theta_mu1h_mu2h
-	
-	sStar_M_dStar_theta_mu1h_mu2h = BoundCondFlux(sStar_M_dStar_theta_mu1h_mu2h)
-
-	d_M_Mu = d(sStar_M_dStar_theta_mu1h_mu2h)
-	
-	rho1_new = rho1 .+ dt .* (-d_rho1_u .+ d_M_Mu) 
-	rho2_new = rho2 .+ dt .* (-d_rho2_u .- d_M_Mu)
-
-	rho1_new = BoundCondScalar(rho1_new)
-	rho2_new = BoundCondScalar(rho2_new)
-
-	#ConservMomentum
-
-	rho = rho1 .+ rho2
-
-	fluxJ = zeros(N + 2 * fict)
-	Jx = J(rho, u_x)  
-	s_J = s(Jx)
-	s_u_x = s(u_x)
-	fluxJ = s_J .* s_u_x
-	fluxJ = BoundCondScalar(fluxJ)
-	d_J_u = dStar(fluxJ)
-
-	rho_Mu_sum = sStar(rho1) .* dStar(mu1h) .+
-		         sStar(rho2) .* dStar(mu2h)
-
-	K_current = K(E, mu_el, lam_el, rho1, rho2)
-	Pi_el_current = PiEl(E, K_current)
-	Pi_ns_current = PiNS(u)
-    
-	d_E_K_x = zeros(N + 2 * fict)
-	for r in 1:3, q in 1:3
-		E_rq = [E[i][r, q] for i in 1:N + 2 * fict - 1]
-		K_rq = [K_current[i][r, q] for i in 1:N + 2 * fict - 1]
-		d_E_K_x .+= dStar(E_rq) .* sStar(K_rq)
-	end
-
-	d_Pi_x = dStar([Pi_ns_current[i][1, 1] + Pi_el_current[i][1, 1] for i in eachindex(E)])
-
-	sStarrho = sStar(rho)
-	dStarPhi = dStar(Phi)
-	force = sStarrho .* dStarPhi 
-
-	denom = sStar(rho1_new .+ rho2_new)
-	u_x_new = ((sStar(rho) .* u_x) .+ 
-			dt .* (-d_J_u .- rho_Mu_sum .+ d_E_K_x .+ d_Pi_x .+ force)) ./ denom
-
-	u_new = [copy(u[i]) for i in 1:N + 2 * fict]
-    for i in 1:N + 2 * fict
-        u_new[i][1] = u_x_new[i]
+    u_x = buf.u_x
+    @inbounds for j in 1:Nface
+        u_x[j] = u[j][1]
     end
 
+    sStar!(buf.sStar_rho1, rho1)
+    sStar!(buf.sStar_rho2, rho2)
 
-	return rho1_new, rho2_new, u_new
+    @inbounds for i in 1:Nface
+        buf.flux1[i] = buf.sStar_rho1[i] * u_x[i]
+        buf.flux2[i] = buf.sStar_rho2[i] * u_x[i]
+    end
+    BoundCondFlux(buf.flux1)
+    BoundCondFlux(buf.flux2)
+
+    #=
+    flux1 = zeros(N + 2*fict)
+    flux2 = zeros(N + 2*fict)
+    for i in fict+1:N+fict
+        if u_x[i] >= 0
+            flux1[i] = rho1[i-1] * u_x[i]
+            flux2[i] = rho2[i-1] * u_x[i]
+        else
+            flux1[i] = rho1[i] * u_x[i]
+            flux2[i] = rho2[i] * u_x[i]
+        end
+    end
+    flux1 = BoundCondFlux(flux1)
+    flux2 = BoundCondFlux(flux2)
+    =#
+
+    d!(buf.d_rho1_u, buf.flux1)
+    d!(buf.d_rho2_u, buf.flux2)
+
+    BoundCondScalar(mu1h)
+    BoundCondScalar(mu2h)
+
+    sStar!(buf.sStar_M, M_arr)
+
+    inv_theta = 1 / theta
+    @inbounds for i in 1:Ncentr
+        buf.theta_mu_diff[i] = inv_theta * (mu1h[i] - mu2h[i])
+    end
+    dStar!(buf.dStar_theta_mu, buf.theta_mu_diff)
+
+    @inbounds for i in 1:Nface
+        buf.flux_M[i] = buf.sStar_M[i] * buf.dStar_theta_mu[i]
+    end
+    BoundCondFlux(buf.flux_M)
+
+    d!(buf.d_M_Mu, buf.flux_M)
+
+    @inbounds for i in 1:Ncentr
+        rho1_new[i] = rho1[i] + dt * (-buf.d_rho1_u[i] + buf.d_M_Mu[i])
+        rho2_new[i] = rho2[i] + dt * (-buf.d_rho2_u[i] - buf.d_M_Mu[i])
+    end
+    BoundCondScalar(rho1_new)
+    BoundCondScalar(rho2_new)
+
+    rho = buf.rho
+    @inbounds for i in 1:Ncentr
+        rho[i] = rho1[i] + rho2[i]
+    end
+
+    Jx = buf.Jx
+    sStar!(Jx, rho)
+    @inbounds for i in 1:Nface
+        Jx[i] *= u_x[i]
+    end
+
+    s!(buf.s_J, Jx)
+    s!(buf.s_u_x, u_x)
+    @inbounds for i in 1:Ncentr
+        buf.fluxJ[i] = buf.s_J[i] * buf.s_u_x[i]
+    end
+    BoundCondScalar(buf.fluxJ)
+    dStar!(buf.d_J_u, buf.fluxJ)
+
+    sStar!(buf.sStar_rho, rho)
+    dStar!(buf.dStar_mu1, mu1h)
+    dStar!(buf.dStar_mu2, mu2h)
+
+    @inbounds for i in 1:Nface
+        buf.rho_Mu_sum[i] = buf.sStar_rho1[i] * buf.dStar_mu1[i] +
+                            buf.sStar_rho2[i] * buf.dStar_mu2[i]
+    end
+
+    fill!(buf.d_E_K_x, 0.0)
+    @inbounds for r in 1:3, q in 1:3
+        for i in 1:Ncentr
+            buf.E_rq[i] = E[i][r, q]
+            buf.K_rq[i] = K_current[i][r, q]
+        end
+        dStar!(buf.dStar_E_rq, buf.E_rq)
+        sStar!(buf.sStar_K_rq, buf.K_rq)
+        for i in 1:Nface
+            buf.d_E_K_x[i] += buf.dStar_E_rq[i] * buf.sStar_K_rq[i]
+        end
+    end
+
+    @inbounds for i in 1:Ncentr
+        buf.Pi_diag[i] = Pi_ns_current[i][1, 1] + Pi_el_current[i][1, 1]
+    end
+    dStar!(buf.d_Pi_x, buf.Pi_diag)
+
+    dStar!(buf.dStar_Phi, Phi)
+    @inbounds for i in 1:Nface
+        buf.force[i] = buf.sStar_rho[i] * buf.dStar_Phi[i]
+    end
+
+    @inbounds for i in 1:Ncentr
+        buf.rho_new_sum[i] = rho1_new[i] + rho2_new[i]
+    end
+    sStar!(buf.denom, buf.rho_new_sum)
+
+    @inbounds for i in 1:Nface
+        buf.u_x_new[i] = (buf.sStar_rho[i] * u_x[i] +
+                         dt * (-buf.d_J_u[i] - buf.rho_Mu_sum[i] +
+                               buf.d_E_K_x[i] + buf.d_Pi_x[i] + buf.force[i])) / buf.denom[i]
+    end
+
+    @inbounds for i in 1:Nface
+        u_new[i][1] = buf.u_x_new[i]
+    end
+
+    return nothing
 end
 
-function ConservAlmansiTensor(E, u, dt)
-	u_x = [u[j][1] for j in 1:N + 2 * fict]
-	E_new = [zeros(3, 3) for i in 1:N + 2 * fict - 1]
+function ConservAlmansiTensor!(E_new, buf, E, u, dt)
+    Ncentr = N + 2 * fict - 1
+    Nface  = N + 2 * fict
 
-	du_dx = d(u_x)
-    
-	for j in 1:3
-    	E_jj = [E[l][j, j] for l in 1:N + 2 * fict - 1]
-        
-        dstar_E = dStar(E_jj)           
-        conv = s(u_x .* dstar_E)        
-        
-        for i in fict + 1:N + fict - 1
-			if j == 1
-            	E_new[i][j,j] = E[i][j,j] + dt * (-conv[i] + du_dx[i] - 2 * E[i][j,j] * du_dx[i])
-			else
-				E_new[i][j,j] = E[i][j,j] + dt * (-conv[i])
-			end
-		end
+    u_x = buf.u_x
+    @inbounds for j in 1:Nface
+        u_x[j] = u[j][1]
     end
 
-	return E_new
+    d!(buf.du_dx, u_x)
+
+    @inbounds for j in 1:3
+        for l in 1:Ncentr
+            buf.E_jj[l] = E[l][j, j]
+        end
+
+        dStar!(buf.dstar_E_jj, buf.E_jj)
+
+        for i in 1:Nface
+            buf.u_x_dstar_E[i] = u_x[i] * buf.dstar_E_jj[i]
+        end
+        s!(buf.conv, buf.u_x_dstar_E)
+
+        if j == 1
+            for i in fict + 1:N + fict - 1
+                E_new[i][j, j] = E[i][j, j] + dt * (-buf.conv[i] + buf.du_dx[i] - 2 * E[i][j, j] * buf.du_dx[i])
+            end
+        else
+            for i in fict + 1:N + fict - 1
+                E_new[i][j, j] = E[i][j, j] + dt * (-buf.conv[i])
+            end
+        end
+    end
+
+    return nothing
 end
 
 
