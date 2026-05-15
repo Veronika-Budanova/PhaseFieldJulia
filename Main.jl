@@ -89,7 +89,20 @@ function main(io)
     # MAIN LOOP
     ##########
 
-    while step < step_max
+    total_step_time_ns = 0
+    total_step_bytes = 0
+    total_gc_time_ns = 0
+    benchmark_steps = 0
+
+    buf = CreateBuffers()
+
+    rho1_new = zeros(N + 2 * fict - 1)
+    rho2_new = zeros(N + 2 * fict - 1)
+    u_new = [zeros(3) for _ in 1:N + 2 * fict]
+    E_new = [zeros(3, 3) for _ in 1:N + 2 * fict - 1]
+    Profile.clear()
+    Profile.init(n = 10^7, delay = 0.0001)
+    Profile.@profile while step < step_max
 
         if t >= t_max
             println("Достигнут t_max")
@@ -98,21 +111,40 @@ function main(io)
         end
 
         dt = delta_t
-
         if t + dt > t_max
             dt = t_max - t
         end
 
-        rho1_new, rho2_new, u_new = ConservMassAndMomentumStep(rho1,rho2,u,E,Phi,dt)
+        MuEl!(buf.mu_el, muelB, rho1, rho2)
+        LamEl!(buf.lam_el, lamelB, rho1, rho2)
+        Mu1Hat!(buf.mu1h, buf, E, rho1, rho2)
+        Mu2Hat!(buf.mu2h, buf, E, rho1, rho2)
+        M!(buf.M_arr, M0, rho1, rho2)
+        K!(buf.K_current, E, buf.mu_el, buf.lam_el)
+        PiEl!(buf.Pi_el_current, E, buf.K_current)
+        PiNS!(buf.Pi_ns_current, u, buf)
 
-        E_new = ConservAlmansiTensor(E,u,dt)
+        stats = @timed begin
+            ConservMassAndMomentumStep!(rho1_new, rho2_new, u_new, buf,
+                                         rho1, rho2, u, E, Phi, dt,
+                                         buf.mu_el, buf.lam_el, buf.mu1h, buf.mu2h, buf.M_arr,
+                                         buf.K_current, buf.Pi_el_current, buf.Pi_ns_current)
+            ConservAlmansiTensor!(E_new, buf, E, u, dt)
+        end
+        if step >= 10
+            total_step_time_ns += round(Int, stats.time * 1e9)
+            total_step_bytes += stats.bytes
+            total_gc_time_ns += round(Int, stats.gctime * 1e9)
+            benchmark_steps += 1
+        end
 
-        rho1 = rho1_new
-        rho2 = rho2_new
-        rho = rho1 .+ rho2
-
-        u = u_new
-        E = E_new
+        rho1, rho1_new = rho1_new, rho1
+        rho2, rho2_new = rho2_new, rho2
+        u, u_new = u_new, u
+        E, E_new = E_new, E
+        @inbounds for i in 1:N + 2 * fict - 1
+            rho[i] = rho1[i] + rho2[i]
+        end
 
         rho1 = BoundCondScalar(rho1)
         rho2 = BoundCondScalar(rho2)
@@ -157,9 +189,23 @@ function main(io)
 
     end
 
+    if benchmark_steps > 0
+        avg_step_us = total_step_time_ns / benchmark_steps / 1e3
+        avg_bytes_per_step = total_step_bytes / benchmark_steps
+        gc_pct = 100.0 * total_gc_time_ns / total_step_time_ns
+        println("Бенчмарк (без первых 10 шагов):")
+        println("  Шагов измерено: $benchmark_steps")
+        println(@sprintf("  Среднее время шага: %.2f мкс", avg_step_us))
+        println(@sprintf("  Среднее число байт на шаг: %.0f", avg_bytes_per_step))
+        println(@sprintf("  Доля времени на GC: %.2f %%", gc_pct))
+    end
     println("Всего шагов: $step")
     println("Финальное время: $t")
     flush(io)
+    println("=" ^ 60)
+    println("Профиль:")
+    Profile.print(format = :flat, sortedby = :count, mincount = 100)
+    println("=" ^ 60)
     cp("log.txt", joinpath(direct, "log.txt"), force=true)
     cp("Config.jl", joinpath(direct, "Config.jl"), force=true)
 

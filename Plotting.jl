@@ -78,7 +78,7 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
     E_kin_est = 0.5 * rho_total_max * (abs(u_init) + g * t_max)^2 * L
     E_force_est = rho_total_max * g * L^2
     E_total_max_est = (E_psi_est + E_kin_est + E_force_est) * 1.1
-    E_total_min_est = 1
+    E_total_min_est = max(1.0, 0.1 * E_psi_est * 0.1)
 
     ############################
     # densities
