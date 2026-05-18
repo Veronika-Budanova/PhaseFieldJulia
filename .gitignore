@@ -31,4 +31,7 @@ TestOperators.jl
 AllTests.jl
 
 
+*.zip
+Config*
+
 
