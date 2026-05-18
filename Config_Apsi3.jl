@@ -42,6 +42,7 @@ bound = "wall"
 #CFL = 0.125
 
 t_max = 30
+
 delta_t = 1e-6
 step_max = t_max/delta_t
 
@@ -60,4 +61,8 @@ x0_piston = 0.6 * L
 #p0 = 100.0
 
 # DIRECTORY
+<<<<<<< HEAD:Config_Apsi3.jl
 direct = "CSframes/Apsi3"
+=======
+direct = "CSframes/33_5"
+>>>>>>> 9e0039050d2fdb67ca17f2c314aed46a6c6fd4fc:Config.jl
