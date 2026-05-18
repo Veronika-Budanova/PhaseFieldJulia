@@ -1,6 +1,7 @@
 using PyCall
 
 plt = pyimport("matplotlib.pyplot")
+patches = pyimport("matplotlib.patches")
 plt.switch_backend("Agg")
 animation = pyimport("matplotlib.animation")
 

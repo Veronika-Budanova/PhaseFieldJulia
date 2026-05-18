@@ -59,7 +59,8 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
     plt.rcParams["axes.formatter.use_mathtext"] = true
     ticker = pyimport("matplotlib.ticker")
 
-    down = -0.17
+    down = -0.11
+
 
     ############################
     # глобальные оценки y_lim
@@ -67,18 +68,19 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
     rho_total_max = max(rho1A + rho2A, rho1B + rho2B)
     ylim_rho_max = rho_total_max * 1.5
 
-    u_max_est = (abs(u_init) + g * t_max) * 1.1
+    u_min_est = (abs(u_init) + g * t_max) * 0.5
+    u_max_est = (abs(u_init) + g * t_max) * 0.8
 
     rho_max_single = max(rho1A, rho1B, rho2A, rho2B)
-    mu_max_est = Apsi * rho_max_single * 1.1
+    mu_max_est = Apsi * rho_max_single * 1.3
 
     p_max_est = Apsi * rho_max_single^2 * 1.1
 
     E_psi_est = Apsi * rho_max_single^2 * L
     E_kin_est = 0.5 * rho_total_max * (abs(u_init) + g * t_max)^2 * L
     E_force_est = rho_total_max * g * L^2
-    E_total_max_est = (E_psi_est + E_kin_est + E_force_est) * 1.1
-    E_total_min_est = 1
+    E_total_max_est = (E_psi_est + E_kin_est + E_force_est) * 0.12
+    E_total_min_est = max(1.0, 0.03 * E_psi_est)
 
     ############################
     # densities
@@ -88,9 +90,23 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
     ax1.plot(xc[fict+1:N+fict-1],rho1[fict+1:N+fict-1],color="navy",label=raw"$\rho_1$")
     ax1.plot(xc[fict+1:N+fict-1],rho2[fict+1:N+fict-1],color="crimson",label=raw"$\rho_2$")
     ax1.plot(xc[fict+1:N+fict-1],rho1[fict+1:N+fict-1]+rho2[fict+1:N+fict-1],ls="--",color="gray",label=raw"$\rho_1+\rho_2$")
-    ax1.set_xlabel(raw"x, мм")
-    ax1.set_ylabel(raw"кг/м$^3$")
-    ax1.set_ylim(-5, ylim_rho_max)
+    #ax1.set_xlabel(raw"x, мм", loc="right")
+    ax1.annotate(raw"x, $м \cdot 10^{-3}$", 
+                xy=(1.01, -0.01),  # x=1.0 (правый край), y отрицательный (ниже оси)
+                xycoords="axes fraction",
+                ha="left",       
+                va="top",         
+                fontsize=12,
+                rotation=0)
+    #ax1.set_ylabel(raw"кг/м$^3$", loc="top")
+    ax1.annotate(raw"$\rho$, кг/м$^3$", 
+                xy=(-0.09, 1.075),  # x отрицательный (слева от оси), y=1.0 (верх)
+                xycoords="axes fraction",
+                ha="left",        
+                va="top",         
+                fontsize=12,
+                rotation=0)      
+    ax1.set_ylim(-50, ylim_rho_max*1.5)
     ax1.set_title(@sprintf("Плотности при t = %.1f мс", t), y=down, pad=0)
     ax1.grid(true)
     ax1.legend()
@@ -106,8 +122,22 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
         ax2.plot(time_hist, energy_hist, color="darkred", linewidth=1.5)
         ax2.set_yscale("log")
     #end
-    ax2.set_xlabel(raw"время, мс")
-    ax2.set_ylabel(raw"$E$")
+    #ax2.set_xlabel(raw"время, мс")
+    ax2.annotate(raw"t, $c \cdot 10^{-3}$", 
+                xy=(1.05, -0.01),  # x=1.0 (правый край), y отрицательный (ниже оси)
+                xycoords="axes fraction",
+                ha="left",       
+                va="top",         
+                fontsize=12,
+                rotation=0)
+    #ax2.set_ylabel(raw"$E$")
+    ax2.annotate(raw"$E$", 
+                xy=(-0.03, 1.075),  # x отрицательный (слева от оси), y=1.0 (верх)
+                xycoords="axes fraction",
+                ha="left",        
+                va="top",         
+                fontsize=12,
+                rotation=0)  
     #ax2.set_ylabel(raw"$\ln(E - E_{\mathrm{предпослед}})$")
     ax2.set_xlim(0, t_max)
     ax2.set_ylim(E_total_min_est, E_total_max_est)
@@ -124,9 +154,23 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
 
     u_x = [u[i][1] for i in fict+1:N+fict]
     ax3.plot(x[fict+1:N+fict], u_x, color="black")
-    ax3.set_xlabel(raw"x, мм")
-    ax3.set_ylabel(raw"м/с")
-    ax3.set_ylim(-u_max_est, u_max_est)
+    #ax3.set_xlabel(raw"x, мм")
+    ax3.annotate(raw"x, $м \cdot 10^{-3}$", 
+                xy=(1.01, -0.01),  # x=1.0 (правый край), y отрицательный (ниже оси)
+                xycoords="axes fraction",
+                ha="left",       
+                va="top",         
+                fontsize=12,
+                rotation=0)
+    #ax3.set_ylabel(raw"м/с")
+    ax3.annotate(raw"$u$, м/с", 
+                xy=(-0.09, 1.075),  # x отрицательный (слева от оси), y=1.0 (верх)
+                xycoords="axes fraction",
+                ha="left",        
+                va="top",         
+                fontsize=12,
+                rotation=0)  
+    ax3.set_ylim(-u_max_est, u_min_est)
     ax3.set_title(@sprintf("Скорость при t = %.1f мс", t), y=down, pad=0)
     ax3.grid(true)
 
@@ -151,10 +195,24 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
     ax4.plot(times_hist,mu2_min_hist,color="royalblue",ls="-",linewidth=1.5,label=raw"Минимум $\hat{\mu}_2$")
     ax4.plot(times_hist,mu1_max_hist,color="magenta",ls="--",linewidth=1.5,label=raw"Максимум $\hat{\mu}_1$")
     ax4.plot(times_hist,mu2_max_hist,color="royalblue",ls="--",linewidth=1.5,label=raw"Максимум $\hat{\mu}_2$")
-    ax4.set_xlabel(raw"время, мс")
-    ax4.set_ylabel(raw"Дж/кг")
+    #ax4.set_xlabel(raw"время, мс")
+    ax4.annotate(raw"t, $c \cdot 10^{-3}$", 
+                xy=(1.05, -0.01),  # x=1.0 (правый край), y отрицательный (ниже оси)
+                xycoords="axes fraction",
+                ha="left",       
+                va="top",         
+                fontsize=12,
+                rotation=0)
+    #ax4.set_ylabel(raw"Дж/кг")
+    ax4.annotate(raw"$\mu$, Дж/кг", 
+                xy=(-0.09, 1.075),  # x отрицательный (слева от оси), y=1.0 (верх)
+                xycoords="axes fraction",
+                ha="left",        
+                va="top",         
+                fontsize=12,
+                rotation=0)  
     ax4.set_xlim(0, t_max)
-    ax4.set_ylim(-mu_max_est, mu_max_est)
+    ax4.set_ylim(-mu_max_est, mu_max_est*1.2)
     ax4.set_title(raw"Минимумы и максимумы химических потенциалов", y=down, pad=0)
     ax4.grid(true)
     ax4.legend()
@@ -165,9 +223,23 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
     ax5 = fig.add_subplot(3,2,5)
 
     ax5.plot(xc[fict+1:N+fict-1],p[fict+1:N+fict-1],color="indigo")
-    ax5.set_xlabel(raw"x, мм")
-    ax5.set_ylabel(raw"Па")
-    ax5.set_ylim(-p_max_est, p_max_est)
+    #ax5.set_xlabel(raw"x, мм")
+    ax5.annotate(raw"x, $м \cdot 10^{-3}$", 
+                xy=(1.01, -0.01),  # x=1.0 (правый край), y отрицательный (ниже оси)
+                xycoords="axes fraction",
+                ha="left",       
+                va="top",         
+                fontsize=12,
+                rotation=0)
+    #ax5.set_ylabel(raw"Па")
+    ax5.annotate(raw"$p$, Па", 
+                xy=(-0.09, 1.075),  # x отрицательный (слева от оси), y=1.0 (верх)
+                xycoords="axes fraction",
+                ha="left",        
+                va="top",         
+                fontsize=12,
+                rotation=0)  
+    ax5.set_ylim(-p_max_est, p_max_est*1.5)
     ax5.set_title(@sprintf("Давление при t = %.1f мс", t), y=down, pad=0)
     ax5.grid(true)
 
@@ -181,15 +253,17 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
     g_arrow = g >= 0 ? raw"$\Leftarrow$" : raw"$\Rightarrow$"
 
     line1 = @sprintf("\$|u_0| = %.2f\$ м/с    %s", abs(u_init), u_arrow)
-    line2 = @sprintf("\$|g| = %.2f\$ м/с\$^2\$  %s", g*1000, g_arrow)
-    line3 = "\$A_\\psi = B_\\psi = " * fmt_sci(Apsi) * "\$ Дж/кг"
-    line4 = @sprintf("\$\\eta = %.1f\$ Па\$\\cdot\$мс", eta)
-    line5 = @sprintf("\$\\zeta = %.1f\$ Па\$\\cdot\$мс", zeta)
+    line2 = @sprintf("\$|g| = %.2f \\cdot 10^{3}\$ м/с\$^2\$  %s", g, g_arrow)
+    line3 = "\$A_\\psi = B_\\psi = " * fmt_sci(Apsi) * "\$ м⁵/(кг·с²)"
+    line4 = @sprintf("\$\\eta = %.1f \\cdot 10^{-3}\$ Па·с", eta)
+    line5 = @sprintf("\$\\zeta = %.1f \\cdot 10^{-3}\$ Па·с", zeta)
     line6 = @sprintf("\$\\lambda_{el} = \\mu_{el} = %.1f\$ Па", lamelB)
-    line7 = "\$\\lambda_{11} = \\lambda_{22} = " * fmt_sci(lam11) * "\$ м\$^6\$/с\$^2\$"
-    line8 = @sprintf("\$N = %d, \\; L = %.1f\$ мм", N, L)
+    line7 = "\$\\lambda_{11} = \\lambda_{22} = " * fmt_sci(lam11) * " \\cdot 10^{-6}\$ м\$^7\$/(кг\$\\cdot\$с\$^2\$)"
+    line8 = @sprintf("\$M_0 = %.1f \\cdot 10^{-3}\$ с·кг·К/м\$^3\$", M0)
+    line9 = @sprintf("\$N = %d\$", N)
+    line10 = @sprintf("\$L = %.1f\\cdot10^{-3}\$ м", L)
 
-    params_text = "Параметры расчёта\n" *
+    params_text = "Параметры расчёта:\n" *
                   "\n" *
                   line1 * "\n" *
                   line2 * "\n" *
@@ -199,8 +273,11 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
                   line5 * "\n" *
                   line6 * "\n" *
                   line7 * "\n" *
-                  line8
+                  line8 * "\n" *
+                  line9 * "\n" *
+                  line10
 
+    #=
     ax6.text(0.5, 0.5, params_text,
              transform=ax6.transAxes,
              fontsize=14,
@@ -208,8 +285,57 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
              horizontalalignment="center",
              fontfamily="serif",
              bbox=Dict("boxstyle"=>"round,pad=1.0", "facecolor"=>"white", "edgecolor"=>"gray", "alpha"=>1.0))
+    =#
+    # Для варианта с ручным созданием рамки:
+    text_obj = ax6.text(0.5, 0.5, params_text,
+                        transform=ax6.transAxes,
+                        fontsize=14,
+                        verticalalignment="center",
+                        horizontalalignment="center",
+                        fontfamily="serif")
 
+    # Получаем bounding box текста
+    renderer = fig.canvas.get_renderer()
+    bbox = text_obj.get_window_extent(renderer=renderer)
+    bbox = bbox.transformed(ax6.transData.inverted())
 
+    # Создаем рамку с помощью patches.Rectangle
+    padding_x = 0.165
+    padding_y = 0.015
+    rect = patches.Rectangle((bbox.x0 - padding_x, bbox.y0 - padding_y),
+                            bbox.width + 2*padding_x,
+                            bbox.height + 2*padding_y,
+                            facecolor="white",
+                            edgecolor="gray",
+                            alpha=1.0,
+                            transform=ax6.transData,
+                            clip_on=false)
+    ax6.add_patch(rect)
+    text_obj.set_zorder(10)
+
+    ############################
+    # стрелки на осях
+    ############################
+    function add_axes_arrows(ax)
+        # Скрываем правую и верхнюю spines
+        ax.spines["right"].set_visible(false)
+        ax.spines["top"].set_visible(false)
+        
+        # Получаем позиции spines
+        spine_bottom = ax.spines["bottom"]
+        spine_left = ax.spines["left"]
+        
+        # Добавляем стрелку на конце bottom spine
+        ax.plot([1.0], [0], "k>", transform=ax.transAxes, markersize=8, clip_on=false)
+        
+        # Добавляем стрелку на конце left spine
+        ax.plot([0], [1.0], "^k", transform=ax.transAxes, markersize=8, clip_on=false)
+    end
+    
+    # Применяем ко всем подграфикам
+    for ax in [ax1, ax2, ax3, ax4, ax5]
+        add_axes_arrows(ax)
+    end
 
     ############################
     # общее форматирование

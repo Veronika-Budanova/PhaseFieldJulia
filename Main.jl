@@ -1,5 +1,7 @@
 include("Imports.jl")
-include("Config.jl")
+config_file = ARGS[1] 
+println("Загружаю конфигурацию: $config_file")
+include(config_file)
 include("Grid.jl")
 include("Initialization.jl")
 include("BoundaryConditions.jl")
@@ -149,7 +151,7 @@ function main(io)
                             progress_pct, step, t))
             flush(io)
             cp("log.txt", joinpath(direct, "log.txt"), force=true)
-            cp("Config.jl", joinpath(direct, "Config.jl"), force=true)
+            cp(config_file, joinpath(direct, config_file), force=true)
         end
 
         t += dt
@@ -161,7 +163,7 @@ function main(io)
     println("Финальное время: $t")
     flush(io)
     cp("log.txt", joinpath(direct, "log.txt"), force=true)
-    cp("Config.jl", joinpath(direct, "Config.jl"), force=true)
+    cp(config_file, joinpath(direct, config_file), force=true)
 
 end
 

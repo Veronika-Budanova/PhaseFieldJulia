@@ -14,12 +14,12 @@ rho1B = 1200
 rho2A = 900
 rho2B = 120
 
-lam11 = 4e-8
+lam11 = 8e-8
 lam12 = 0
 lam21 = lam12
 lam22 = lam11
 
-Apsi = 1e-3
+Apsi = 1e-4
 Bpsi = Apsi
 
 lamelB = 2e2
@@ -34,14 +34,14 @@ zeta = 0
 
 g = 0.05
 
-u_init = -0.2
+u_init = -0.1
 
 bound = "wall"
 
 # TIME PARAMETERS
 #CFL = 0.125
 
-t_max = 20
+t_max = 30
 delta_t = 1e-6
 step_max = t_max/delta_t
 
@@ -60,4 +60,4 @@ x0_piston = 0.6 * L
 #p0 = 100.0
 
 # DIRECTORY
-direct = "CSframes/33"
+direct = "CSframes/Config10"
