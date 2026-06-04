@@ -13,13 +13,12 @@ function InitDensitiesSpinodal(xc)
 
     Random.seed!(123)
 
-    for i in N + fict:N - 1 + fict
+    for i in fict + 1:N - 1 + fict
         rho1[i] = rho1_mean * (1.0 + amp * (2.0 * rand() - 1.0))
         rho2[i] = 1000 - rho1[i]
     end
 
     rho = rho1 .+ rho2
-
     return rho1, rho2, rho
 
 end
@@ -85,7 +84,6 @@ function InitVelocity()
         u[i][1] = u_init
     end
     return u
-
 end
 
 function InitVelocityPistonImitation(x, rho1, rho2)
@@ -100,9 +98,7 @@ function InitVelocityPistonImitation(x, rho1, rho2)
     for i in eachindex(u)
         u[i][1] = v0_piston * ch_nodes[i]
     end
-
     return u
-
 end   
 
 
@@ -112,9 +108,6 @@ end
 ##########
 
 function InitAlmansiTens()
-
     E = [zeros(3,3) for i in 1:(N + 2 * fict - 1)]
-
     return E
-
 end

@@ -66,22 +66,29 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
     # глобальные оценки y_lim
     ############################
     rho_total_max = max(rho1A + rho2A, rho1B + rho2B)
-    ylim_rho_max = rho_total_max * 1.5
+    ylim_rho_min = rho_min
+    ylim_rho_max = rho_total_max * rho_max_coeff
 
-    u_min_est = (abs(u_init) + g * t_max) * 0.5
-    u_max_est = (abs(u_init) + g * t_max) * 0.8
+    u_max_est = (abs(u_init) + g * t_max) 
+    ylim_u_min = -0.1#-u_max_est * u_min_coeff
+    ylim_u_max = 0.1#u_max_est * u_max_coeff
 
     rho_max_single = max(rho1A, rho1B, rho2A, rho2B)
-    mu_max_est = Apsi * rho_max_single * 1.3
+    mu_max_est = Apsi * rho_max_single * mu_max_coeff
+    ylim_mu_min = -mu_max_est * mu_min_coeff
+    ylim_mu_max = mu_max_est * mu_max_coeff
 
-    p_max_est = Apsi * rho_max_single^2 * 1.1
+    p_max_est = Apsi * rho_max_single^2 
+    ylim_p_min = -p_max_est * p_min_coeff
+    ylim_p_max = p_max_est * p_max_coeff
 
     E_psi_est = Apsi * rho_max_single^2 * L
     E_kin_est = 0.5 * rho_total_max * (abs(u_init) + g * t_max)^2 * L
     E_force_est = rho_total_max * g * L^2
-
-    E_total_max_est = (E_psi_est + E_kin_est + E_force_est) * 0.12
-    E_total_min_est = max(1.0, 0.03 * E_psi_est)
+    E_total_max_est = 1.5e2#(E_psi_est + E_kin_est + E_force_est)
+    E_total_min_est = max(1.0, E_psi_est)
+    ylim_E_total_min = E_total_min_est * E_min_coeff
+    ylim_E_total_max = E_total_max_est * E_max_coeff
 
     ############################
     # densities
@@ -107,7 +114,7 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
                 va="top",         
                 fontsize=12,
                 rotation=0)      
-    ax1.set_ylim(-50, ylim_rho_max*1.5)
+    ax1.set_ylim(ylim_rho_min, ylim_rho_max)
     ax1.set_title(@sprintf("Плотности при t = %.1f мс", t), y=down, pad=0)
     ax1.grid(true)
     ax1.legend()
@@ -141,7 +148,7 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
                 rotation=0)  
     #ax2.set_ylabel(raw"$\ln(E - E_{\mathrm{предпослед}})$")
     ax2.set_xlim(0, t_max)
-    ax2.set_ylim(E_total_min_est, E_total_max_est)
+    ax2.set_ylim(ylim_E_total_min, ylim_E_total_max)
     ax2.set_title(raw"Полная энергия (логарифмическая шкала)", y=down, pad=0)
     ax2.xaxis.set_minor_locator(ticker.AutoMinorLocator(5))
     ax2.grid(true, which="major", linestyle="-", linewidth=0.8, alpha=0.7)
@@ -171,7 +178,7 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
                 va="top",         
                 fontsize=12,
                 rotation=0)  
-    ax3.set_ylim(-u_max_est, u_min_est)
+    ax3.set_ylim(ylim_u_min, ylim_u_max)
     ax3.set_title(@sprintf("Скорость при t = %.1f мс", t), y=down, pad=0)
     ax3.grid(true)
 
@@ -213,7 +220,7 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
                 fontsize=12,
                 rotation=0)  
     ax4.set_xlim(0, t_max)
-    ax4.set_ylim(-mu_max_est, mu_max_est*1.2)
+    ax4.set_ylim(ylim_mu_min, ylim_mu_max)
     ax4.set_title(raw"Минимумы и максимумы химических потенциалов", y=down, pad=0)
     ax4.grid(true)
     ax4.legend()
@@ -240,7 +247,7 @@ function save_frame(xc, x, rho1, rho2, u, p, fict, t,
                 va="top",         
                 fontsize=12,
                 rotation=0)  
-    ax5.set_ylim(-p_max_est, p_max_est*1.5)
+    ax5.set_ylim(ylim_p_min, ylim_p_max)
     ax5.set_title(@sprintf("Давление при t = %.1f мс", t), y=down, pad=0)
     ax5.grid(true)
 

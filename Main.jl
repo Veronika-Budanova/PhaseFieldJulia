@@ -24,7 +24,13 @@ function main(io)
     # INITIAL CONDITIONS
     ##########
     u = InitVelocity()
-    rho1, rho2, rho = InitDensitiesPistonImitationSmooth(xc)
+    if rho_init == "sharp"
+        rho1, rho2, rho = InitDensitiesPistonImitationSharp(xc)
+    elseif rho_init == "spinodal"
+        rho1, rho2, rho = InitDensitiesSpinodal(xc)
+    else
+        rho1, rho2, rho = InitDensitiesPistonImitationSmooth(xc)
+    end
     E = InitAlmansiTens()
 
     ##########
@@ -153,12 +159,6 @@ function main(io)
         rho = BoundCondScalar(rho)
         u = BoundCondVector(u)
         E = BoundCondScalar(E)
-        #=
-        if step < 50 || step % 1000 == 0
-            println("step=$step t=$(round(t,sigdigits=4)) min(rho1)=$(round(minimum(rho1),sigdigits=4)) min(rho2)=$(round(minimum(rho2),sigdigits=4))")
-            flush(stdout)
-        end
-        =#
 
         if !CheckStability(rho1,rho2,u,step,t,E,mu_el,lam_el,Phi)
             break
@@ -195,7 +195,7 @@ function main(io)
         avg_step_us = total_step_time_ns / benchmark_steps / 1e3
         avg_bytes_per_step = total_step_bytes / benchmark_steps
         gc_pct = 100.0 * total_gc_time_ns / total_step_time_ns
-        println("Бенчмарк (без первых 10 шагов):")
+        println("Бенчмарк:")
         println("  Шагов измерено: $benchmark_steps")
         println(@sprintf("  Среднее время шага: %.2f мкс", avg_step_us))
         println(@sprintf("  Среднее число байт на шаг: %.0f", avg_bytes_per_step))
@@ -204,10 +204,6 @@ function main(io)
     println("Всего шагов: $step")
     println("Финальное время: $t")
     flush(io)
-    println("=" ^ 60)
-    println("Профиль:")
-    Profile.print(format = :flat, sortedby = :count, mincount = 100)
-    println("=" ^ 60)
     cp("log.txt", joinpath(direct, "log.txt"), force=true)
     cp(config_file, joinpath(direct, config_file), force=true)
 
