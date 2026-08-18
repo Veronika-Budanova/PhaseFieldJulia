@@ -340,3 +340,7 @@ for (i, fr) in enumerate(frames)
 end
 
 MakeCenterPlot()
+
+# --- сообщение о завершении построения графиков ---
+println("Построение графиков завершено.")
+println("Графики сохранены в директорию: ", direct)

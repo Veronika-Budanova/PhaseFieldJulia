@@ -6,6 +6,8 @@
 function DownloadConfig()
     global config_file = ARGS[1] 
     println("Загружаю конфигурацию: $config_file")
+    println("Прогресс и сообщения об ошибках доступны в файле: log.txt")
+    println("")
     include(config_file)
 end
 
@@ -143,4 +145,27 @@ function CheckEnergyNonIncrease(energy_hist, step, t, rtol)
         return false
     end
     return true
+end
+
+# --- сохранение полного состояния для продолжения расчета ---
+function SaveCheckpoint(rho1, rho2, rho, u, E, t, step, frame_count, next_frame_t,
+                        energy_hist, time_hist, init_mass1, init_mass2)
+    checkpoint = (rho1 = rho1, rho2 = rho2, rho = rho, u = u, E = E,
+                  t = t, step = step, frame_count = frame_count, next_frame_t = next_frame_t,
+                  energy_hist = energy_hist, time_hist = time_hist,
+                  init_mass1 = init_mass1, init_mass2 = init_mass2)
+    # --- сначала во временный файл, затем атомарное переименование ---
+    tmp_path = joinpath(direct, "checkpoint.jls.tmp")
+    open(tmp_path, "w") do io
+        serialize(io, checkpoint)
+    end
+    mv(tmp_path, joinpath(direct, "checkpoint.jls"), force = true)
+    return nothing
+end
+
+# --- загрузка сохраненного состояния ---
+function LoadCheckpoint()
+    open(joinpath(direct, "checkpoint.jls"), "r") do io
+        return deserialize(io)
+    end
 end
