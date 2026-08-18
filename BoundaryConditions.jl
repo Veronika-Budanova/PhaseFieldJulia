@@ -1,5 +1,4 @@
 # BOUNDARY CONDITIONS
-
 function BoundCondScalar(A)
     for i in 1:fict
         if bound == "periodic"
@@ -20,9 +19,7 @@ function BoundCondScalar(A)
             end
         end
     end
-
     return A
-
 end
 
 function BoundCondVector(A) 

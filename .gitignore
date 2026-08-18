@@ -21,17 +21,13 @@
 CSframes/
 Diplom/
 OldFiles/
+Figures/
 
 # Мои ненужные файлы
 *.txt
 *.png
-1DEmultionElastic.jl
-TestBound.jl
-TestOperators.jl
-AllTests.jl
-
 
 *.zip
-Config*
 
+test.jl
 

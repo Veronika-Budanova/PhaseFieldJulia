@@ -1,5 +1,3 @@
-heaviside(u) = 0.5 * (sign(u) + 1.0)
-
 function ConservMassAndMomentumStep!(rho1_new, rho2_new, u_new, buf,
                                      rho1, rho2, u, E, Phi, dt,
                                      mu_el, lam_el, mu1h, mu2h, M_arr,
@@ -173,26 +171,3 @@ function ConservAlmansiTensor!(E_new, buf, E, u, dt)
     return nothing
 end
 
-
-function CheckStability(rho1, rho2, u, step, t, E, mu_el, lam_el, Phi)
-    u_x = [u[i][1] for i in eachindex(u)]
-
-    if any(isnan.(rho1)) || any(isnan.(rho2)) || any(isnan.(u_x))
-        println("NaN, step = $step, t = $t")
-        return false
-    end
-
-    if maximum(abs.(rho1)) > 1e6 || maximum(abs.(rho2)) > 1e6
-        println("Blow-up rho, step = $step, t = $t, max|rho1| = $(maximum(abs.(rho1))), max|rho2| = $(maximum(abs.(rho2)))")
-        return false
-    end
-
-	if maximum(abs.(u_x)) > 1e4
-        println("Blow-up u, step = $step, t = $t, max|u| = $(maximum(abs.(u_x)))")
-        return false
-    end
-
-
-    return true
-
-end
