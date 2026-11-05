@@ -68,6 +68,7 @@ end
 if dim == 1
     requests = FilterRequests1D(requests)
 end
+requests = unique(requests)
 
 ####################################################################################################
 
@@ -437,18 +438,23 @@ end
 
 # --- построение графика зависимости положения центра поршня от времени ---
 function MakeCenterPlot()
+    path = joinpath(direct, "piston_center.png")
+
+    if isfile(path) && filesize(path) > 0 && mtime(path) >= mtime(data_path)
+        return
+    end
+
     fig = plt.figure(figsize=(9, 5))
     ax = fig.add_subplot(1, 1, 1)
     label_num = raw"Численное решение" #dim == 1 ? $y_c$" : @sprintf("Численный \$y_c\$ при x = %.2f", sl.x_slice)
     ax.plot(ts, cn, color="navy", label=label_num)
     if plot_analytics
         ca = [AnalyticState(t).y_p for t in ts]
-        ax.plot(ts, ca, label=raw"Аналитическое решение")#Приближенный аналитический $y_c$, " 
+        ax.plot(ts, ca, label=raw"Аналитическое решение") 
     end
     LabelT(ax)
     LabelV(ax, raw"$y_c$, $м \cdot 10^{-3}$")
     ax.set_xlim(0, t_max)
-    #ax.set_title(raw"Положение центра твердого тела", y=down, pad=0)
     ax.grid(true)
     ax.legend()
     FinishAxis(ax, :center)
@@ -461,6 +467,12 @@ end
 
 # --- отдельные графики и несколько сабплотов на одном графике ---
 function MakeIndividual(sym, fr, k, idx)
+    path = joinpath(direct, suffix[sym], @sprintf("rho_%05d_%s.png", idx, suffix[sym]))
+
+    if isfile(path) && filesize(path) > 0
+        return
+    end
+
     fig = plt.figure(figsize=(7.5, 4))
     ax = fig.add_subplot(1, 1, 1)
     DrawQuantity(ax, sym, fr, k)
@@ -471,6 +483,12 @@ function MakeIndividual(sym, fr, k, idx)
 end
 
 function MakeCombined(syms, fr, k, idx)
+    path = joinpath(direct, "mp4", @sprintf("rho_%05d_mp4.png", idx))
+
+    if isfile(path) && filesize(path) > 0
+        return
+    end
+
     n = length(syms)
     ncols = 2
     nrows = ceil(Int, n / ncols)
