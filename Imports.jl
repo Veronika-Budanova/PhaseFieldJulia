@@ -1,3 +1,8 @@
+#=
+Файл, содержащий подключение внешних пакетов.
+Включен в Main.jl через include.
+=#
+
 using PyCall
 
 plt = pyimport("matplotlib.pyplot")
@@ -12,4 +17,8 @@ using Random
 using ProgressBars
 using Profile
 using Serialization
+using Logging
 using DifferentialEquations
+using Polyester
+using StaticArrays
+using SymPy

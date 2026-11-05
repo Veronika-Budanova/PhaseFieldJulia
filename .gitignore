@@ -18,16 +18,12 @@
 .wget-hsts
 
 # Мои ненужные папки
-CSframes/
-Diplom/
+Configs/
 OldFiles/
-Figures/
 
 # Мои ненужные файлы
 *.txt
-*.png
+BenchStep.jl
+CompareRuns.jl
 
-*.zip
-
-test.jl
 
